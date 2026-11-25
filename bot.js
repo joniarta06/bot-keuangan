@@ -1,0 +1,6 @@
+const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys')
+const qrcode = require('qrcode-terminal')
+const fetch = require('node-fetch')
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxRMPiqU-4nS7Fw2d-MP2Wu28AtHsoPcTJZz3Ua-U_-iq3lRmFUBvB9Ved9mvWw6Elfew/exec'
+function parseUang(t){t=t.toLowerCase().replace('rb','000').replace('k','000').replace(/[^0-9]/g,'');return parseInt(t)||0}
+async function start(){const{state,saveCreds}=await useMultiFileAuthState('auth');const sock=makeWASocket({auth:state});sock.ev.on('creds.update',saveCreds);sock.ev.on('connection.update',({qr})=>{if(qr)qrcode.generate(qr,{small:true})});sock.ev.on('messages.upsert',async({messages})=>{const m=messages[0];if(!m.message||m.key.fromMe)return;const text=(m.message.conversation||m.message.extendedTextMessage?.text||'').trim().toLowerCase();if(!text.startsWith('k ')&&!text.startsWith('m '))return;const parts=text.split(' ');const tipe=text[0]==='k'?'keluar':'masuk';const jumlah=parseUang(parts[1]);const keterangan=parts.slice(2).join(' ');if(!jumlah||!keterangan)return;await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({tipe,jumlah,keterangan})});await sock.sendMessage(m.key.remoteJid,{text:`✅ ${tipe} Rp${jumlah} - ${keterangan} masuk sheet!`})});}start()
