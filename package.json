@@ -1,0 +1,9 @@
+{
+  "name": "bot-keuangan",
+  "main": "bot.js",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.0",
+    "qrcode-terminal": "^0.12.0",
+    "node-fetch": "^2.6.7"
+  }
+}
